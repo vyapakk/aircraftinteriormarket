@@ -11,8 +11,10 @@ import {
   Cell,
 } from "recharts";
 import { SegmentData, YearlyData } from "@/data/marketData";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { MousePointer2 } from "lucide-react";
+import { useChartDownload } from "@/hooks/useChartDownload";
+import { ChartDownloadButton } from "./ChartDownloadButton";
 
 interface RegionalBarChartProps {
   data: SegmentData[];
@@ -37,6 +39,8 @@ export function RegionalBarChart({
   onBarClick,
 }: RegionalBarChartProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
+  const { downloadChart } = useChartDownload();
 
   const barData = data.map((segment, index) => ({
     name: segment.name,
@@ -74,16 +78,22 @@ export function RegionalBarChart({
 
   return (
     <motion.div
+      ref={chartRef}
       initial={{ opacity: 0, x: 20 }}
       animate={{ opacity: 1, x: 0 }}
       transition={{ duration: 0.5, delay: 0.4 }}
       className="rounded-xl border border-border bg-card p-6"
     >
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-        {subtitle && (
-          <p className="text-sm text-muted-foreground">{subtitle}</p>
-        )}
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+          {subtitle && (
+            <p className="text-sm text-muted-foreground">{subtitle}</p>
+          )}
+        </div>
+        <ChartDownloadButton
+          onClick={() => downloadChart(chartRef, `${title.toLowerCase().replace(/\s+/g, "-")}`)}
+        />
       </div>
 
       <div className="h-[300px] w-full">

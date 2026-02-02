@@ -11,6 +11,9 @@ import {
 } from "recharts";
 import { YearlyData, SegmentData } from "@/data/marketData";
 import { MousePointer2 } from "lucide-react";
+import { useRef } from "react";
+import { useChartDownload } from "@/hooks/useChartDownload";
+import { ChartDownloadButton } from "./ChartDownloadButton";
 
 interface MarketTrendChartProps {
   data: YearlyData[];
@@ -38,6 +41,8 @@ export function MarketTrendChart({
   showSegments = false,
   onSegmentClick,
 }: MarketTrendChartProps) {
+  const chartRef = useRef<HTMLDivElement>(null);
+  const { downloadChart } = useChartDownload();
   const chartData = data.map((d) => {
     const point: Record<string, number> = { year: d.year, total: d.value };
     if (showSegments && segments) {
@@ -109,16 +114,22 @@ export function MarketTrendChart({
 
   return (
     <motion.div
+      ref={chartRef}
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.5, delay: 0.2 }}
       className="rounded-xl border border-border bg-card p-6"
     >
-      <div className="mb-6">
-        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-        {subtitle && (
-          <p className="text-sm text-muted-foreground">{subtitle}</p>
-        )}
+      <div className="mb-6 flex items-start justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+          {subtitle && (
+            <p className="text-sm text-muted-foreground">{subtitle}</p>
+          )}
+        </div>
+        <ChartDownloadButton
+          onClick={() => downloadChart(chartRef, `market-trend-${title.toLowerCase().replace(/\s+/g, "-")}`)}
+        />
       </div>
 
       <div className="h-[350px] w-full">
