@@ -14,7 +14,9 @@ import {
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { SegmentData, YearlyData, calculateCAGR } from "@/data/marketData";
-import { useState } from "react";
+import { useState, useRef } from "react";
+import { useChartDownload } from "@/hooks/useChartDownload";
+import { ChartDownloadButton } from "./ChartDownloadButton";
 
 interface DrillDownModalProps {
   isOpen: boolean;
@@ -42,6 +44,10 @@ export function DrillDownModal({
     data: YearlyData[];
     color: string;
   } | null>(null);
+  
+  const trendChartRef = useRef<HTMLDivElement>(null);
+  const barChartRef = useRef<HTMLDivElement>(null);
+  const { downloadChart } = useChartDownload();
 
   const currentValue = segmentData.find((d) => d.year === 2024)?.value ?? 0;
   const forecastValue = segmentData.find((d) => d.year === 2034)?.value ?? 0;
@@ -217,12 +223,18 @@ export function DrillDownModal({
 
           {/* Trend Chart */}
           <motion.div
+            ref={trendChartRef}
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
             className="rounded-lg border border-border bg-secondary/20 p-4"
           >
-            <h4 className="mb-4 text-sm font-semibold text-foreground">Historical & Forecast Trend</h4>
+            <div className="mb-4 flex items-center justify-between">
+              <h4 className="text-sm font-semibold text-foreground">Historical & Forecast Trend</h4>
+              <ChartDownloadButton
+                onClick={() => downloadChart(trendChartRef, `${drillLevel === 0 ? segmentName : selectedSubSegment?.name}-trend`.toLowerCase().replace(/\s+/g, "-"))}
+              />
+            </div>
             <div className="h-[250px]">
               <ResponsiveContainer width="100%" height="100%">
                 <AreaChart
@@ -272,14 +284,20 @@ export function DrillDownModal({
           {/* Related Segments (only on first drill level) */}
           {drillLevel === 0 && relatedSegments && relatedSegments.data.length > 0 && (
             <motion.div
+              ref={barChartRef}
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
               className="rounded-lg border border-border bg-secondary/20 p-4"
             >
-              <h4 className="mb-4 text-sm font-semibold text-foreground">
-                {relatedSegments.title} - Click to drill down further
-              </h4>
+              <div className="mb-4 flex items-center justify-between">
+                <h4 className="text-sm font-semibold text-foreground">
+                  {relatedSegments.title} - Click to drill down further
+                </h4>
+                <ChartDownloadButton
+                  onClick={() => downloadChart(barChartRef, `${segmentName}-${relatedSegments.title}`.toLowerCase().replace(/\s+/g, "-"))}
+                />
+              </div>
               <div className="h-[200px]">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart

@@ -9,8 +9,10 @@ import {
   Sector,
 } from "recharts";
 import { SegmentData, YearlyData } from "@/data/marketData";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { MousePointer2 } from "lucide-react";
+import { useChartDownload } from "@/hooks/useChartDownload";
+import { ChartDownloadButton } from "./ChartDownloadButton";
 
 interface SegmentPieChartProps {
   data: SegmentData[];
@@ -32,6 +34,8 @@ const chartColors = [
 
 export function SegmentPieChart({ data, year, title, onSegmentClick }: SegmentPieChartProps) {
   const [activeIndex, setActiveIndex] = useState<number | null>(null);
+  const chartRef = useRef<HTMLDivElement>(null);
+  const { downloadChart } = useChartDownload();
 
   const pieData = data.map((segment, index) => ({
     name: segment.name,
@@ -120,14 +124,20 @@ export function SegmentPieChart({ data, year, title, onSegmentClick }: SegmentPi
 
   return (
     <motion.div
+      ref={chartRef}
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
       transition={{ duration: 0.5, delay: 0.3 }}
       className="rounded-xl border border-border bg-card p-6"
     >
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-foreground">{title}</h3>
-        <p className="text-sm text-muted-foreground">{year} Distribution</p>
+      <div className="mb-4 flex items-start justify-between">
+        <div>
+          <h3 className="text-lg font-semibold text-foreground">{title}</h3>
+          <p className="text-sm text-muted-foreground">{year} Distribution</p>
+        </div>
+        <ChartDownloadButton
+          onClick={() => downloadChart(chartRef, `${title.toLowerCase().replace(/\s+/g, "-")}-${year}`)}
+        />
       </div>
 
       <div className="h-[300px] w-full">
