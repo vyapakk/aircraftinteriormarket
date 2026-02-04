@@ -9,8 +9,6 @@ import { MarketTrendChart } from "@/components/dashboard/MarketTrendChart";
 import { SegmentPieChart } from "@/components/dashboard/SegmentPieChart";
 import { RegionalBarChart } from "@/components/dashboard/RegionalBarChart";
 import { YearSelector } from "@/components/dashboard/YearSelector";
-import { MultiYearSelector } from "@/components/dashboard/MultiYearSelector";
-import { YearComparisonChart } from "@/components/dashboard/YearComparisonChart";
 import { SegmentTabs, SegmentType } from "@/components/dashboard/SegmentTabs";
 import { ComparisonTable } from "@/components/dashboard/ComparisonTable";
 import { DrillDownModal } from "@/components/dashboard/DrillDownModal";
@@ -29,17 +27,13 @@ import {
 } from "@/data/marketData";
 
 const Index = () => {
-  const [selectedYears, setSelectedYears] = useState<number[]>([2024]);
+  const [selectedYear, setSelectedYear] = useState(2024);
   const [segmentType, setSegmentType] = useState<SegmentType>("endUser");
   const { drillDownState, openDrillDown, closeDrillDown } = useDrillDown();
 
-  // Use the first selected year for single-year views
-  const primaryYear = selectedYears[0];
-  const isCompareMode = selectedYears.length > 1;
-
   // Calculate KPI values
-  const currentMarketValue = totalMarketData.find((d) => d.year === primaryYear)?.value ?? 0;
-  const previousYearValue = totalMarketData.find((d) => d.year === primaryYear - 1)?.value ?? 0;
+  const currentMarketValue = totalMarketData.find((d) => d.year === selectedYear)?.value ?? 0;
+  const previousYearValue = totalMarketData.find((d) => d.year === selectedYear - 1)?.value ?? 0;
   const yoyChange = previousYearValue > 0 ? ((currentMarketValue - previousYearValue) / previousYearValue) * 100 : 0;
   
   const value2024 = totalMarketData.find((d) => d.year === 2024)?.value ?? 0;
@@ -135,7 +129,7 @@ const Index = () => {
         {/* Controls */}
         <div className="mb-8 flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <SegmentTabs value={segmentType} onChange={setSegmentType} />
-          <MultiYearSelector selectedYears={selectedYears} onChange={setSelectedYears} />
+          <YearSelector value={selectedYear} onChange={setSelectedYear} />
         </div>
 
         {/* KPI Cards */}
@@ -195,38 +189,26 @@ const Index = () => {
           </div>
           <SegmentPieChart
             data={currentSegment.data}
-            year={primaryYear}
+            year={selectedYear}
             title={currentSegment.title}
             onSegmentClick={handlePieSegmentClick}
           />
         </div>
 
-        {/* Year Comparison Chart - Shows when multiple years selected */}
-        {isCompareMode && (
-          <div className="mb-8">
-            <YearComparisonChart
-              data={currentSegment.data}
-              years={selectedYears}
-              title={`${currentSegment.title} - Year Comparison`}
-              subtitle={`Comparing ${selectedYears.join(", ")} market sizes`}
-            />
-          </div>
-        )}
-
         {/* Secondary Charts */}
         <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
           <RegionalBarChart
             data={regionData}
-            year={primaryYear}
+            year={selectedYear}
             title="Regional Distribution"
-            subtitle={`Market size by region in ${primaryYear}`}
+            subtitle={`Market size by region in ${selectedYear}`}
             onBarClick={handleBarClick}
           />
           <RegionalBarChart
             data={aircraftTypeData}
-            year={primaryYear}
+            year={selectedYear}
             title="Aircraft Type Breakdown"
-            subtitle={`Market size by aircraft type in ${primaryYear}`}
+            subtitle={`Market size by aircraft type in ${selectedYear}`}
             onBarClick={handleAircraftBarClick}
           />
         </div>
